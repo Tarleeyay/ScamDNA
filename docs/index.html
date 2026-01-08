@@ -3,167 +3,436 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>ScamDNA Guard™ Demo</title>
+  <title>ScamDNA Guard™ — 2 Phone Demo</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto; margin:0; background:#0b1220; color:#e6eefc;}
-    .wrap{max-width:980px; margin:0 auto; padding:24px;}
-    .card{background:#101a33; border:1px solid #1f2a4a; border-radius:16px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.25);}
-    h1{margin:0 0 6px; font-size:22px;}
-    .sub{opacity:.8; margin:0 0 16px;}
-    textarea{width:100%; min-height:130px; border-radius:12px; border:1px solid #2a3963; background:#0d1630; color:#e6eefc; padding:12px; font-size:14px;}
-    button{border:0; background:#2f7cff; color:white; padding:10px 14px; border-radius:12px; font-weight:700; cursor:pointer;}
-    button:disabled{opacity:.6; cursor:not-allowed;}
-    .grid{display:grid; grid-template-columns: 1.2fr .8fr; gap:16px; margin-top:16px;}
-    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; font-weight:700;}
-    .safe{background:rgba(70,200,120,.15); border:1px solid rgba(70,200,120,.35);}
-    .sus{background:rgba(255,200,80,.15); border:1px solid rgba(255,200,80,.35);}
-    .high{background:rgba(255,80,90,.15); border:1px solid rgba(255,80,90,.35);}
-    .bars{display:flex; flex-direction:column; gap:10px; margin-top:12px;}
-    .row{display:grid; grid-template-columns: 140px 1fr 52px; gap:10px; align-items:center;}
-    .track{background:#0d1630; border:1px solid #2a3963; height:12px; border-radius:999px; overflow:hidden;}
-    .fill{height:100%; width:0%;}
-    .muted{opacity:.85; font-size:13px; line-height:1.4;}
-    .hl{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
-    .tag{background:#0d1630; border:1px solid #2a3963; padding:6px 10px; border-radius:999px; font-size:12px;}
-    .secTitle{margin:0 0 8px; font-size:14px; opacity:.9;}
-    ul{margin:8px 0 0 18px;}
-    .footer{opacity:.6; font-size:12px; margin-top:14px;}
+    :root{
+      --bg:#0b1220; --card:#101a33; --stroke:#1f2a4a; --muted:rgba(230,238,252,.78);
+      --me:#2f7cff; --them:#1a2547;
+      --safe:rgba(70,200,120,.18); --sus:rgba(255,200,80,.18); --high:rgba(255,80,90,.18);
+      --safe-b:rgba(70,200,120,.35); --sus-b:rgba(255,200,80,.35); --high-b:rgba(255,80,90,.35);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;background:var(--bg);color:#e6eefc;}
+    .topbar{
+      max-width:1200px;margin:0 auto;padding:18px 18px 8px;
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
+    }
+    .brand{font-weight:900;letter-spacing:.2px}
+    .hint{color:var(--muted);font-size:13px}
+    .wrap{max-width:1200px;margin:0 auto;padding:12px 18px 26px;}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
+
+    .panel{
+      background:var(--card);border:1px solid var(--stroke);
+      border-radius:18px;padding:14px;box-shadow:0 12px 34px rgba(0,0,0,.28);
+    }
+    .panelHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+    .role{
+      padding:8px 12px;border-radius:999px;font-weight:800;border:1px solid var(--stroke);
+      background:rgba(255,255,255,.03)
+    }
+
+    /* phone shell */
+    .phone{
+      border:1px solid var(--stroke);border-radius:24px;background:#0d1630;
+      overflow:hidden;display:flex;flex-direction:column;height:640px;
+    }
+    .phoneTop{
+      padding:10px 12px;border-bottom:1px solid var(--stroke);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      background:rgba(255,255,255,.03);
+    }
+    .phoneName{font-weight:900}
+    .badge{
+      font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);
+      color:var(--muted)
+    }
+
+    /* notification */
+    .notif{
+      display:none;
+      margin:10px 12px 0;
+      padding:10px 12px;border-radius:14px;border:1px solid var(--high-b);
+      background:var(--high);
+      cursor:pointer;
+    }
+    .notif.safe{border-color:var(--safe-b);background:var(--safe)}
+    .notif.sus{border-color:var(--sus-b);background:var(--sus)}
+    .notif.high{border-color:var(--high-b);background:var(--high)}
+    .notifTitle{font-weight:900;margin-bottom:2px}
+    .notifSub{font-size:13px;color:var(--muted);line-height:1.35}
+
+    /* chat */
+    .chat{
+      padding:12px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:10px;
+    }
+    .bubbleRow{display:flex}
+    .bubble{
+      max-width:78%;
+      padding:10px 12px;border-radius:16px;
+      border:1px solid var(--stroke);
+      background:var(--them); color:#e6eefc;
+      white-space:pre-wrap; word-break:break-word;
+      font-size:14px; line-height:1.35;
+    }
+    .me{justify-content:flex-end}
+    .me .bubble{background:rgba(47,124,255,.22);border-color:rgba(47,124,255,.35)}
+    .meta{
+      font-size:11px;color:rgba(230,238,252,.55);margin-top:3px;
+    }
+
+    /* input */
+    .composer{
+      border-top:1px solid var(--stroke);
+      display:flex;gap:10px;padding:10px;background:rgba(255,255,255,.02);
+    }
+    input{
+      flex:1;background:#0b1430;border:1px solid #2a3963;color:#e6eefc;
+      border-radius:14px;padding:10px 12px;font-size:14px;outline:none;
+    }
+    button{
+      border:0;background:var(--me);color:white;font-weight:900;
+      padding:10px 14px;border-radius:14px;cursor:pointer;
+    }
+    button:disabled{opacity:.6;cursor:not-allowed}
+
+    /* ScamDNA modal */
+    .modalBackdrop{
+      position:fixed;inset:0;background:rgba(0,0,0,.55);
+      display:none;align-items:center;justify-content:center;padding:18px;
+    }
+    .modal{
+      width:min(760px, 100%); background:var(--card);
+      border:1px solid var(--stroke); border-radius:18px;
+      padding:16px; box-shadow:0 18px 60px rgba(0,0,0,.45);
+    }
+    .modalTop{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-weight:900;
+      border:1px solid var(--stroke); background:rgba(255,255,255,.03);
+    }
+    .pill.safe{border-color:var(--safe-b); background:var(--safe)}
+    .pill.sus{border-color:var(--sus-b); background:var(--sus)}
+    .pill.high{border-color:var(--high-b); background:var(--high)}
+    .closeBtn{background:transparent;border:1px solid var(--stroke);color:#e6eefc}
+    .modalGrid{display:grid;grid-template-columns: 1.15fr .85fr;gap:14px;margin-top:12px;}
+    @media (max-width: 860px){ .modalGrid{grid-template-columns:1fr;} }
+    .box{border:1px solid var(--stroke);border-radius:16px;padding:12px;background:rgba(255,255,255,.02)}
+    .secTitle{margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:800}
+    .bars{display:flex;flex-direction:column;gap:10px;}
+    .row{display:grid;grid-template-columns:140px 1fr 52px;gap:10px;align-items:center;}
+    .track{background:#0d1630;border:1px solid #2a3963;height:12px;border-radius:999px;overflow:hidden;}
+    .fill{height:100%;width:0%}
+    ul{margin:8px 0 0 18px;color:var(--muted);font-size:13px;line-height:1.4}
+    .small{color:var(--muted);font-size:13px;line-height:1.4}
+    .msgPreview{
+      margin-top:8px;padding:10px 12px;border-radius:14px;border:1px dashed #2a3963;
+      background:#0d1630;color:#e6eefc;font-size:13px;white-space:pre-wrap;
+    }
   </style>
 </head>
 <body>
+
+  <div class="topbar">
+    <div>
+      <div class="brand">ScamDNA Guard™ — Two-Phone Connected Demo</div>
+      <div class="hint">Type on either phone. Victim phone runs ScamDNA analysis on suspicious texts and shows a notification you can click.</div>
+    </div>
+    <div class="hint" id="apiHint"></div>
+  </div>
+
   <div class="wrap">
-    <div class="card">
-      <h1>ScamDNA Guard™</h1>
-      <p class="sub">Paste a suspicious message/link → get Risk Score + Scam DNA Profile + Human explanation.</p>
+    <div class="grid">
 
-      <textarea id="input" placeholder="Paste SMS / chat / email text here..."></textarea>
-      <div style="display:flex; gap:12px; margin-top:12px; align-items:center;">
-        <button id="btn" onclick="analyze()">Analyze Scam</button>
-        <span class="muted" id="status"></span>
-      </div>
-
-      <div class="grid">
-        <div class="card" style="padding:16px;">
-          <p class="secTitle">🧬 Scam DNA Profile</p>
-          <div id="bars" class="bars"></div>
-
-          <div style="margin-top:14px;">
-            <p class="secTitle">🔎 Highlighted risky cues</p>
-            <div id="highlights" class="hl"></div>
-          </div>
+      <!-- Victim -->
+      <div class="panel">
+        <div class="panelHead">
+          <div class="role">user1 (victim)</div>
+          <div class="badge">ScamDNA installed ✅</div>
         </div>
 
-        <div class="card" style="padding:16px;">
-          <p class="secTitle">🚨 Risk Result</p>
-          <div id="riskPill" class="pill safe">SAFE • 0%</div>
-
-          <div style="margin-top:14px;">
-            <p class="secTitle">🧠 Why this works on humans</p>
-            <p id="explain" class="muted">—</p>
+        <div class="phone">
+          <div class="phoneTop">
+            <div class="phoneName">Chat</div>
+            <div class="badge">Victim View</div>
           </div>
 
-          <div style="margin-top:14px;">
-            <p class="secTitle">🛡️ How to protect yourself</p>
-            <ul id="tips" class="muted"></ul>
+          <div id="victimNotif" class="notif" onclick="openProfile()">
+            <div class="notifTitle" id="notifTitle">Alert</div>
+            <div class="notifSub" id="notifSub">Click to view ScamDNA profile</div>
           </div>
 
-          <div class="footer">Demo MVP (rule-based). Can be upgraded with LLM + bank telemetry + edge AI.</div>
+          <div id="victimChat" class="chat"></div>
+
+          <div class="composer">
+            <input id="victimInput" placeholder="Type as victim…" />
+            <button id="victimSend" onclick="sendFrom('victim')">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scammer -->
+      <div class="panel">
+        <div class="panelHead">
+          <div class="role">user2 (scammer)</div>
+          <div class="badge">No ScamDNA</div>
+        </div>
+
+        <div class="phone">
+          <div class="phoneTop">
+            <div class="phoneName">Chat</div>
+            <div class="badge">Scammer View</div>
+          </div>
+
+          <div id="scammerChat" class="chat"></div>
+
+          <div class="composer">
+            <input id="scammerInput" placeholder="Type as scammer…" />
+            <button id="scammerSend" onclick="sendFrom('scammer')">Send</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ScamDNA Profile Modal -->
+  <div id="backdrop" class="modalBackdrop" onclick="closeProfile(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modalTop">
+        <div>
+          <div class="secTitle">🧬 ScamDNA Profile</div>
+          <div id="riskPill" class="pill">—</div>
+        </div>
+        <button class="closeBtn" onclick="closeProfile()">Close</button>
+      </div>
+
+      <div class="modalGrid">
+        <div class="box">
+          <p class="secTitle">DNA Breakdown</p>
+          <div id="bars" class="bars"></div>
+
+          <p class="secTitle" style="margin-top:12px;">Message analyzed</p>
+          <div id="preview" class="msgPreview">—</div>
+        </div>
+
+        <div class="box">
+          <p class="secTitle">🧠 Why this works on humans</p>
+          <div id="explain" class="small">—</div>
+
+          <p class="secTitle" style="margin-top:12px;">🛡️ How to protect yourself</p>
+          <ul id="tips"></ul>
         </div>
       </div>
     </div>
   </div>
 
 <script>
+  // ✅ Put your Render URL here (NO /analyze)
+  const API_BASE = "https://scamdna-1.onrender.com";
+  const ANALYZE_URL = `${API_BASE}/analyze`;
 
-const API = (location.hostname.includes("github.io"))
-  ? "https://scamdna-1.onrender.com/analyze"
-  : "http://localhost:8000/analyze";
+  document.getElementById("apiHint").textContent =
+    `API: ${API_BASE === "https://YOUR-RENDER-APP.onrender.com" ? "(set API_BASE in code)" : API_BASE}`;
 
+  const LABELS = {
+    urgency: "Urgency",
+    authority: "Authority",
+    payment_trap: "Payment Trap",
+    fear: "Fear",
+    reward: "Reward",
+    trust_hijack: "Trust Hijack"
+  };
 
+  // In-memory conversation
+  // Each message: { from: "victim"|"scammer", text: string, ts: Date }
+  const convo = [];
 
-const LABELS = {
-  urgency: "Urgency",
-  authority: "Authority",
-  payment_trap: "Payment Trap",
-  fear: "Fear",
-  reward: "Reward",
-  trust_hijack: "Trust Hijack"
-};
+  // latest analysis cached for modal
+  let lastAnalysis = null;
+  let lastAnalyzedText = "";
 
-function pillClass(level){
-  if(level==="HIGH") return "high";
-  if(level==="SUSPICIOUS") return "sus";
-  return "safe";
-}
+  function nowTime(){
+    const d = new Date();
+    return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  }
 
-function analyze(){
-  const text = document.getElementById("input").value.trim();
-  if(!text){ alert("Paste some text first."); return; }
+  function addMessage(from, text){
+    convo.push({from, text, ts: new Date()});
+    renderChats();
+  }
 
-  const btn = document.getElementById("btn");
-  btn.disabled = true;
-  document.getElementById("status").textContent = "Analyzing...";
+  function renderChats(){
+    renderOne("victimChat", "victim");
+    renderOne("scammerChat", "scammer");
+  }
 
-  fetch(API, {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ text })
-  })
-  .then(r => r.json())
-  .then(data => render(data))
-  .catch(err => {
-    console.error(err);
-    alert("Backend not running or CORS blocked. Run FastAPI on port 8000.");
-  })
-  .finally(() => {
-    btn.disabled = false;
-    document.getElementById("status").textContent = "";
+  function renderOne(elId, viewer){
+    const el = document.getElementById(elId);
+    el.innerHTML = "";
+    for(const m of convo){
+      const isMe = (m.from === viewer);
+      const row = document.createElement("div");
+      row.className = "bubbleRow " + (isMe ? "me" : "");
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = m.text;
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = `${isMe ? "You" : (m.from === "victim" ? "user1" : "user2")} • ${m.ts.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+
+      const wrap = document.createElement("div");
+      wrap.style.display = "flex";
+      wrap.style.flexDirection = "column";
+      wrap.style.alignItems = isMe ? "flex-end" : "flex-start";
+      wrap.appendChild(bubble);
+      wrap.appendChild(meta);
+
+      row.appendChild(wrap);
+      el.appendChild(row);
+    }
+    // autoscroll
+    el.scrollTop = el.scrollHeight;
+  }
+
+  async function sendFrom(who){
+    const inputId = who === "victim" ? "victimInput" : "scammerInput";
+    const btnId   = who === "victim" ? "victimSend" : "scammerSend";
+    const input = document.getElementById(inputId);
+    const btn = document.getElementById(btnId);
+
+    const text = (input.value || "").trim();
+    if(!text) return;
+
+    input.value = "";
+    addMessage(who, text);
+
+    // ✅ Victim phone runs ScamDNA analysis whenever a suspicious text is sent by ANYONE:
+    // - If scammer sends suspicious -> victim gets alerted
+    // - If victim sends suspicious -> victim also gets alerted (as you asked)
+    await runVictimAnalysis(text, who);
+  }
+
+  function setNotif(level, score, title, sub){
+    const n = document.getElementById("victimNotif");
+    const t = document.getElementById("notifTitle");
+    const s = document.getElementById("notifSub");
+
+    n.classList.remove("safe","sus","high");
+    if(level === "HIGH") n.classList.add("high");
+    else if(level === "SUSPICIOUS") n.classList.add("sus");
+    else n.classList.add("safe");
+
+    t.textContent = title;
+    s.textContent = sub;
+    n.style.display = "block";
+  }
+
+  async function runVictimAnalysis(text, sender){
+    // If API not set, still keep demo usable:
+    if(API_BASE.includes("YOUR-RENDER-APP")){
+      // naive fallback: if contains obvious scam cues -> alert
+      const lower = text.toLowerCase();
+      const looksBad = /(urgent|suspend|verify|transfer|pay|otp|bit\.ly|tinyurl|ด่วน|ระงับ|โอน|คลิก|รางวัล)/i.test(text);
+      if(looksBad){
+        lastAnalysis = {
+          risk_level: "HIGH",
+          risk_score: 85,
+          dna: {urgency:80, authority:60, payment_trap:80, fear:60, reward:20, trust_hijack:80},
+          explanation: "Fallback demo mode: message matches common scam cues (urgency/link/payment).",
+          tips: ["Avoid links from messages.", "Verify via official channels.", "Never share OTP or transfer under pressure."]
+        };
+        lastAnalyzedText = text;
+        setNotif("HIGH", 85,
+          "⚠️ Scam Alert",
+          `Message from ${sender === "scammer" ? "user2" : "you"} looks risky • click to view ScamDNA profile`);
+      }
+      return;
+    }
+
+    try{
+      const res = await fetch(ANALYZE_URL, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ text })
+      });
+      const data = await res.json();
+
+      // Only alert if suspicious/high (so demo isn't noisy)
+      if(data.risk_level === "SUSPICIOUS" || data.risk_level === "HIGH"){
+        lastAnalysis = data;
+        lastAnalyzedText = text;
+
+        const emoji = data.risk_level === "HIGH" ? "⚠️" : "🟡";
+        setNotif(data.risk_level, data.risk_score,
+          `${emoji} Potential Scam Detected`,
+          `Message from ${sender === "scammer" ? "user2" : "you"} • Risk ${data.risk_score}% • click to view ScamDNA profile`);
+      }
+    }catch(err){
+      console.error(err);
+      setNotif("SUSPICIOUS", 0, "API Error", "Could not reach /analyze. Check API_BASE.");
+    }
+  }
+
+  function openProfile(){
+    if(!lastAnalysis) return;
+    const b = document.getElementById("backdrop");
+    b.style.display = "flex";
+
+    // pill
+    const pill = document.getElementById("riskPill");
+    pill.className = "pill";
+    if(lastAnalysis.risk_level === "HIGH") pill.classList.add("high");
+    else if(lastAnalysis.risk_level === "SUSPICIOUS") pill.classList.add("sus");
+    else pill.classList.add("safe");
+    pill.textContent = `${lastAnalysis.risk_level} • ${lastAnalysis.risk_score}%`;
+
+    // bars
+    const bars = document.getElementById("bars");
+    bars.innerHTML = "";
+    Object.keys(lastAnalysis.dna || {}).forEach(k => {
+      const v = lastAnalysis.dna[k];
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `
+        <div class="small"><b>${LABELS[k] || k}</b></div>
+        <div class="track"><div class="fill" style="width:${v}%; background: rgba(47,124,255,.85);"></div></div>
+        <div class="small" style="text-align:right;">${v}</div>
+      `;
+      bars.appendChild(row);
+    });
+
+    // preview + explain + tips
+    document.getElementById("preview").textContent = lastAnalyzedText || "—";
+    document.getElementById("explain").textContent = lastAnalysis.explanation || "—";
+
+    const tips = document.getElementById("tips");
+    tips.innerHTML = "";
+    (lastAnalysis.tips || []).forEach(t => {
+      const li = document.createElement("li");
+      li.textContent = t;
+      tips.appendChild(li);
+    });
+  }
+
+  function closeProfile(evt){
+    const b = document.getElementById("backdrop");
+    b.style.display = "none";
+  }
+
+  // Enter-to-send
+  document.getElementById("victimInput").addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){ e.preventDefault(); sendFrom("victim"); }
   });
-}
-
-function render(data){
-  // Risk pill
-  const pill = document.getElementById("riskPill");
-  pill.className = "pill " + pillClass(data.risk_level);
-  pill.textContent = `${data.risk_level} • ${data.risk_score}%`;
-
-  // Bars
-  const bars = document.getElementById("bars");
-  bars.innerHTML = "";
-  Object.keys(data.dna).forEach(k => {
-    const v = data.dna[k];
-    const row = document.createElement("div");
-    row.className = "row";
-    row.innerHTML = `
-      <div class="muted"><b>${LABELS[k]}</b></div>
-      <div class="track"><div class="fill" style="width:${v}%; background: rgba(47,124,255,.85);"></div></div>
-      <div class="muted" style="text-align:right;">${v}</div>
-    `;
-    bars.appendChild(row);
+  document.getElementById("scammerInput").addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){ e.preventDefault(); sendFrom("scammer"); }
   });
 
-  // Explanation
-  document.getElementById("explain").textContent = data.explanation;
-
-  // Tips
-  const tips = document.getElementById("tips");
-  tips.innerHTML = "";
-  (data.tips || []).forEach(t => {
-    const li = document.createElement("li");
-    li.textContent = t;
-    tips.appendChild(li);
-  });
-
-  // Highlights
-  const hl = document.getElementById("highlights");
-  hl.innerHTML = "";
-  (data.highlights || []).forEach(x => {
-    const span = document.createElement("span");
-    span.className = "tag";
-    span.textContent = x;
-    hl.appendChild(span);
-  });
-}
+  // Seed messages for instant demo
+  addMessage("scammer", "Hi! Are you free right now?");
+  addMessage("victim", "Yes, what’s up?");
 </script>
 </body>
 </html>
