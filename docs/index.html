@@ -1,1 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>ScamDNA Guard™ Demo</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto; margin:0; background:#0b1220; color:#e6eefc;}
+    .wrap{max-width:980px; margin:0 auto; padding:24px;}
+    .card{background:#101a33; border:1px solid #1f2a4a; border-radius:16px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.25);}
+    h1{margin:0 0 6px; font-size:22px;}
+    .sub{opacity:.8; margin:0 0 16px;}
+    textarea{width:100%; min-height:130px; border-radius:12px; border:1px solid #2a3963; background:#0d1630; color:#e6eefc; padding:12px; font-size:14px;}
+    button{border:0; background:#2f7cff; color:white; padding:10px 14px; border-radius:12px; font-weight:700; cursor:pointer;}
+    button:disabled{opacity:.6; cursor:not-allowed;}
+    .grid{display:grid; grid-template-columns: 1.2fr .8fr; gap:16px; margin-top:16px;}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; font-weight:700;}
+    .safe{background:rgba(70,200,120,.15); border:1px solid rgba(70,200,120,.35);}
+    .sus{background:rgba(255,200,80,.15); border:1px solid rgba(255,200,80,.35);}
+    .high{background:rgba(255,80,90,.15); border:1px solid rgba(255,80,90,.35);}
+    .bars{display:flex; flex-direction:column; gap:10px; margin-top:12px;}
+    .row{display:grid; grid-template-columns: 140px 1fr 52px; gap:10px; align-items:center;}
+    .track{background:#0d1630; border:1px solid #2a3963; height:12px; border-radius:999px; overflow:hidden;}
+    .fill{height:100%; width:0%;}
+    .muted{opacity:.85; font-size:13px; line-height:1.4;}
+    .hl{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+    .tag{background:#0d1630; border:1px solid #2a3963; padding:6px 10px; border-radius:999px; font-size:12px;}
+    .secTitle{margin:0 0 8px; font-size:14px; opacity:.9;}
+    ul{margin:8px 0 0 18px;}
+    .footer{opacity:.6; font-size:12px; margin-top:14px;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>ScamDNA Guard™</h1>
+      <p class="sub">Paste a suspicious message/link → get Risk Score + Scam DNA Profile + Human explanation.</p>
 
+      <textarea id="input" placeholder="Paste SMS / chat / email text here..."></textarea>
+      <div style="display:flex; gap:12px; margin-top:12px; align-items:center;">
+        <button id="btn" onclick="analyze()">Analyze Scam</button>
+        <span class="muted" id="status"></span>
+      </div>
+
+      <div class="grid">
+        <div class="card" style="padding:16px;">
+          <p class="secTitle">🧬 Scam DNA Profile</p>
+          <div id="bars" class="bars"></div>
+
+          <div style="margin-top:14px;">
+            <p class="secTitle">🔎 Highlighted risky cues</p>
+            <div id="highlights" class="hl"></div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:16px;">
+          <p class="secTitle">🚨 Risk Result</p>
+          <div id="riskPill" class="pill safe">SAFE • 0%</div>
+
+          <div style="margin-top:14px;">
+            <p class="secTitle">🧠 Why this works on humans</p>
+            <p id="explain" class="muted">—</p>
+          </div>
+
+          <div style="margin-top:14px;">
+            <p class="secTitle">🛡️ How to protect yourself</p>
+            <ul id="tips" class="muted"></ul>
+          </div>
+
+          <div class="footer">Demo MVP (rule-based). Can be upgraded with LLM + bank telemetry + edge AI.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+
+const API = (location.hostname.includes("github.io"))
+  ? "https://scamdna-1.onrender.com/analyze"
+  : "http://localhost:8000/analyze";
+
+
+
+const LABELS = {
+  urgency: "Urgency",
+  authority: "Authority",
+  payment_trap: "Payment Trap",
+  fear: "Fear",
+  reward: "Reward",
+  trust_hijack: "Trust Hijack"
+};
+
+function pillClass(level){
+  if(level==="HIGH") return "high";
+  if(level==="SUSPICIOUS") return "sus";
+  return "safe";
+}
+
+function analyze(){
+  const text = document.getElementById("input").value.trim();
+  if(!text){ alert("Paste some text first."); return; }
+
+  const btn = document.getElementById("btn");
+  btn.disabled = true;
+  document.getElementById("status").textContent = "Analyzing...";
+
+  fetch(API, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ text })
+  })
+  .then(r => r.json())
+  .then(data => render(data))
+  .catch(err => {
+    console.error(err);
+    alert("Backend not running or CORS blocked. Run FastAPI on port 8000.");
+  })
+  .finally(() => {
+    btn.disabled = false;
+    document.getElementById("status").textContent = "";
+  });
+}
+
+function render(data){
+  // Risk pill
+  const pill = document.getElementById("riskPill");
+  pill.className = "pill " + pillClass(data.risk_level);
+  pill.textContent = `${data.risk_level} • ${data.risk_score}%`;
+
+  // Bars
+  const bars = document.getElementById("bars");
+  bars.innerHTML = "";
+  Object.keys(data.dna).forEach(k => {
+    const v = data.dna[k];
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `
+      <div class="muted"><b>${LABELS[k]}</b></div>
+      <div class="track"><div class="fill" style="width:${v}%; background: rgba(47,124,255,.85);"></div></div>
+      <div class="muted" style="text-align:right;">${v}</div>
+    `;
+    bars.appendChild(row);
+  });
+
+  // Explanation
+  document.getElementById("explain").textContent = data.explanation;
+
+  // Tips
+  const tips = document.getElementById("tips");
+  tips.innerHTML = "";
+  (data.tips || []).forEach(t => {
+    const li = document.createElement("li");
+    li.textContent = t;
+    tips.appendChild(li);
+  });
+
+  // Highlights
+  const hl = document.getElementById("highlights");
+  hl.innerHTML = "";
+  (data.highlights || []).forEach(x => {
+    const span = document.createElement("span");
+    span.className = "tag";
+    span.textContent = x;
+    hl.appendChild(span);
+  });
+}
+</script>
+</body>
+</html>
